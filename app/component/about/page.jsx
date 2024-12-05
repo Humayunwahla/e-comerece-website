@@ -4,6 +4,7 @@ import productsData from '../../../data/products.json'
 
 function About() {
   const [items, setItems] = useState([])
+  const [message, setMessage] = useState("");
   const addproduct = (product) => {
     setItems((prevItems) => [...prevItems, product])
   }
@@ -11,6 +12,35 @@ function About() {
     setItems((prevItems)=>
     prevItems.filter((item)=> item!== itemtoremove))
   }
+  const addProductToDB = async () => {
+    if (items.length === 0) {
+      setMessage("No items selected to add.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/addproduct", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ products: items }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage(data.message);
+        setItems([]); // Clear the cart after successful addition
+      } else {
+        setMessage(data.message || "Failed to add products.");
+      }
+    } catch (error) {
+      console.error("Error adding products:", error);
+      setMessage("An error occurred while adding products.");
+    }
+  };
+
   return (
     <div className='bg-slate-200 h-screen text-center p-9 '>
 
@@ -43,6 +73,17 @@ function About() {
           ))}
         </ul>
       </div>
+
+      <div className='mt-8'>
+        <button className='bg-indigo-600 text-white h-12 w-28 rounded-lg'
+        onClick={addProductToDB}
+        >Add Product</button>
+      </div>
+      {message && (
+        <div className="mt-5">
+          <p className="text-red-600">{message}</p>
+        </div>
+      )}
     </div>
   )
 }
